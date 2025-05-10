@@ -1,0 +1,9 @@
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/vpp
+    username: vpp_user
+    password: vpp_password
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql

@@ -1,0 +1,52 @@
+package com.chellenge.vpp.service;
+
+import com.chellenge.vpp.dto.BatteryDto;
+import com.chellenge.vpp.dto.BatteryResponse;
+import com.chellenge.vpp.entity.Battery;
+import com.chellenge.vpp.repository.BatteryRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Mono;
+
+import java.util.List;
+
+@Service
+@Transactional
+public class VppServiceImpl implements VppService {
+    
+    private final BatteryRepository batteryRepository;
+    
+    public VppServiceImpl(BatteryRepository batteryRepository) {
+        this.batteryRepository = batteryRepository;
+    }
+    
+    @Override
+    public Mono<Void> saveBatteries(List<BatteryDto> batteries) {
+        return Mono.just(batteries)
+            .map(batteryDtos -> batteryDtos.stream()
+                .map(dto -> Battery.from(dto.name(), dto.postcode(), dto.wattCapacity()))
+                .toList())
+            .flatMap(batteryEntities -> batteryRepository.saveAll(batteryEntities).then());
+    }
+    
+    @Override
+    public Mono<BatteryResponse> getBatteriesByPostcodeRange(String startPostcode, String endPostcode) {
+        return batteryRepository.findBatteriesByPostcodeRange(startPostcode, endPostcode)
+            .collectList()
+            .map(batteries -> {
+                List<String> names = batteries.stream()
+                    .map(Battery::name)
+                    .sorted()
+                    .toList();
+                    
+                double totalCapacity = batteries.stream()
+                    .mapToDouble(Battery::wattCapacity)
+                    .sum();
+                    
+                double avgCapacity = batteries.isEmpty() ? 0 : 
+                    totalCapacity / batteries.size();
+                    
+                return new BatteryResponse(names, totalCapacity, avgCapacity);
+            });
+    }
+}
