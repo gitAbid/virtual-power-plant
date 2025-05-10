@@ -1,0 +1,13 @@
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/vpp
+    username: ${DB_USERNAME:sp}
+    password: ${DB_PASSWORD:postgres}
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+      data-locations: classpath:data.sql
+
+server:
+  port: 8080

@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <property name="CONSOLE_LOG_PATTERN" value="%clr(%d{HH:mm:ss.SSS}){faint} %clr(%5p) %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx"/>
+    <property name="FILE_LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"/>
+
     <!-- Console Appender with Color -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>%cyan(%d{HH:mm:ss.SSS}) %highlight(%-5level) [%blue(%t)] %yellow(%C{1}): %msg%n</pattern>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
         </encoder>
     </appender>
 
@@ -11,7 +14,7 @@
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>logs/vpp.log</file>
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>logs/vpp.%d{yyyy-MM-dd}.log</fileNamePattern>
@@ -29,14 +32,36 @@
 
     <!-- Logger Configuration -->
     <!-- Application Loggers -->
-    <logger name="com.chellenge.vpp" level="DEBUG"/>
+    <logger name="com.chellenge.vpp" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="ASYNC"/>
+    </logger>
     
-    <!-- Spring Framework -->
-    <logger name="org.springframework" level="INFO"/>
+    <!-- Framework Loggers -->
+    <logger name="org.springframework" level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="ASYNC"/>
+    </logger>
     
-    <!-- R2DBC and Database -->
-    <logger name="org.springframework.r2dbc" level="INFO"/>
-    <logger name="io.r2dbc.pool" level="INFO"/>
+    <!-- Database Loggers -->
+    <logger name="org.springframework.r2dbc" level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="ASYNC"/>
+    </logger>
+    <logger name="io.r2dbc.postgresql" level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="ASYNC"/>
+    </logger>
+
+    <!-- TestContainers Loggers (only active in test profile) -->
+    <springProfile name="test">
+        <logger name="org.testcontainers" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+        <logger name="com.github.dockerjava" level="WARN" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+    </springProfile>
     
     <!-- Root Logger -->
     <root level="INFO">

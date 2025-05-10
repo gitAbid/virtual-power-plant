@@ -21,5 +21,18 @@ public record BatteryFilterRequest(
             throw new IllegalArgumentException(
                 "Maximum watt capacity must be greater than or equal to minimum watt capacity");
         }
+
+        if (startPostcode != null && endPostcode != null) {
+            try {
+                int start = Integer.parseInt(startPostcode);
+                int end = Integer.parseInt(endPostcode);
+                if (end < start) {
+                    throw new IllegalArgumentException(
+                        "End postcode must be greater than or equal to start postcode");
+                }
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Postcodes must be valid integers");
+            }
+        }
     }
 }
