@@ -80,7 +80,10 @@ class VppControllerTest {
                 .queryParam("endPostcode", "2001")
                 .build())
             .exchange()
-            .expectStatus().isBadRequest();
+            .expectStatus().isBadRequest()
+            .expectBody()
+            .jsonPath("$.status").isEqualTo("error")
+            .jsonPath("$.message").isEqualTo("Postcodes must be valid integers");
     }
 
     @Test
@@ -93,7 +96,10 @@ class VppControllerTest {
                 .queryParam("minWattCapacity", "-10.0")
                 .build())
             .exchange()
-            .expectStatus().isBadRequest();
+            .expectStatus().isBadRequest()
+            .expectBody()
+            .jsonPath("$.status").isEqualTo("error")
+            .jsonPath("$.message").isEqualTo("Validation failed");
     }
 
     @Test
@@ -104,12 +110,42 @@ class VppControllerTest {
                 .queryParam("startPostcode", "2000")
                 .queryParam("endPostcode", "2001")
                 .queryParam("minWattCapacity", "20.0")
-                .queryParam("maxWattCapacity", "10.0")  // max < min
+                .queryParam("maxWattCapacity", "10.0")
                 .build())
             .exchange()
             .expectStatus().isBadRequest()
             .expectBody()
             .jsonPath("$.status").isEqualTo("error")
             .jsonPath("$.message").isEqualTo("Maximum watt capacity must be greater than or equal to minimum watt capacity");
+    }
+
+    @Test
+    void getBatteriesByPostcodeRange_NonNumericPostcode_ReturnsBadRequest() {
+        webTestClient.get()
+            .uri(uriBuilder -> uriBuilder
+                .path("/api/v1/vpp/batteries")
+                .queryParam("startPostcode", "abc")
+                .queryParam("endPostcode", "def")
+                .build())
+            .exchange()
+            .expectStatus().isBadRequest()
+            .expectBody()
+            .jsonPath("$.status").isEqualTo("error")
+            .jsonPath("$.message").isEqualTo("Postcodes must be valid integers");
+    }
+
+    @Test
+    void getBatteriesByPostcodeRange_EndPostcodeLessThanStart_ReturnsBadRequest() {
+        webTestClient.get()
+            .uri(uriBuilder -> uriBuilder
+                .path("/api/v1/vpp/batteries")
+                .queryParam("startPostcode", "3000")
+                .queryParam("endPostcode", "2000")
+                .build())
+            .exchange()
+            .expectStatus().isBadRequest()
+            .expectBody()
+            .jsonPath("$.status").isEqualTo("error")
+            .jsonPath("$.message").isEqualTo("End postcode must be greater than or equal to start postcode");
     }
 }

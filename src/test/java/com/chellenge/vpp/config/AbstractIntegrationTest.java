@@ -25,7 +25,11 @@ public abstract class AbstractIntegrationTest {
     static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
         @Override
         public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
-            String r2dbcUrl = postgreSQLContainer.getJdbcUrl().replace("jdbc:", "r2dbc:");
+            String r2dbcUrl = String.format("r2dbc:postgresql://%s:%d/%s",
+                    postgreSQLContainer.getHost(),
+                    postgreSQLContainer.getMappedPort(PostgreSQLContainer.POSTGRESQL_PORT),
+                    postgreSQLContainer.getDatabaseName());
+
             TestPropertyValues.of(
                     "spring.r2dbc.url=" + r2dbcUrl,
                     "spring.r2dbc.username=" + postgreSQLContainer.getUsername(),
