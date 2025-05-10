@@ -14,8 +14,7 @@ import reactor.test.StepVerifier;
 
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 class VppServiceImplTest {
@@ -52,12 +51,12 @@ class VppServiceImplTest {
         Double maxWattCapacity = 20.0;
 
         List<Battery> batteries = List.of(
-            Battery.from("Battery1", "2000", 12.5),
-            Battery.from("Battery2", "2001", 15.0)
+            Battery.from("Battery1", 2000, 12.5),
+            Battery.from("Battery2", 2001, 15.0)
         );
 
         when(batteryRepository.findBatteriesByPostcodeRangeAndWattCapacity(
-            startPostcode, endPostcode, minWattCapacity, maxWattCapacity))
+            Integer.valueOf(startPostcode), Integer.valueOf(endPostcode), minWattCapacity, maxWattCapacity))
             .thenReturn(Flux.fromIterable(batteries));
 
         BatteryResponse expectedResponse = new BatteryResponse(
@@ -75,7 +74,7 @@ class VppServiceImplTest {
     @Test
     void getBatteriesByPostcodeRange_EmptyResult() {
         when(batteryRepository.findBatteriesByPostcodeRangeAndWattCapacity(
-            anyString(), anyString(), any(), any()))
+            anyInt(), anyInt(), any(), any()))
             .thenReturn(Flux.empty());
 
         BatteryResponse expectedResponse = new BatteryResponse(
