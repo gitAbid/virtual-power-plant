@@ -8,10 +8,10 @@ public record Battery(
     @Id
     Long id,
     String name,
-    String postcode,
+    Integer postcode,
     Double wattCapacity
 ) {
-    public static Battery from(String name, String postcode, Double wattCapacity) {
+    public static Battery from(String name, Integer postcode, Double wattCapacity) {
         return new Battery(null, name, postcode, wattCapacity);
     }
 }

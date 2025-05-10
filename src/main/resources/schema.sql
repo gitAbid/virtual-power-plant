@@ -2,7 +2,7 @@ DROP TABLE IF EXISTS batteries;
 CREATE TABLE IF NOT EXISTS batteries (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    postcode VARCHAR(10) NOT NULL,
+    postcode INT NOT NULL,
     watt_capacity DOUBLE PRECISION NOT NULL
 );
 

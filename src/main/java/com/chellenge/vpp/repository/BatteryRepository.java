@@ -12,8 +12,8 @@ public interface BatteryRepository extends ReactiveCrudRepository<Battery, Long>
            "AND (:maxWattCapacity IS NULL OR watt_capacity <= :maxWattCapacity) " +
            "ORDER BY name")
     Flux<Battery> findBatteriesByPostcodeRangeAndWattCapacity(
-            String startPostcode,
-            String endPostcode,
+            Integer startPostcode,
+            Integer endPostcode,
             Double minWattCapacity,
             Double maxWattCapacity);
 }

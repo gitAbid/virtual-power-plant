@@ -24,7 +24,7 @@ public class VppServiceImpl implements VppService {
     public Mono<Void> saveBatteries(List<BatteryDto> batteries) {
         return Mono.just(batteries)
             .map(batteryDtos -> batteryDtos.stream()
-                .map(dto -> Battery.from(dto.name(), dto.postcode(), dto.capacity()))
+                .map(dto -> Battery.from(dto.name(), Integer.valueOf(dto.postcode()), dto.capacity()))
                 .toList())
             .flatMap(batteryEntities -> batteryRepository.saveAll(batteryEntities).then());
     }
@@ -36,7 +36,10 @@ public class VppServiceImpl implements VppService {
             Double minWattCapacity,
             Double maxWattCapacity) {
         return Mono.defer(() -> batteryRepository.findBatteriesByPostcodeRangeAndWattCapacity(
-                                startPostcode, endPostcode, minWattCapacity, maxWattCapacity)
+                                Integer.valueOf(startPostcode),
+                                Integer.valueOf(endPostcode),
+                                minWattCapacity,
+                                maxWattCapacity)
                         .collectList())
             .map(batteries -> {
                 List<String> names = batteries.stream()
