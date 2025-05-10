@@ -3,6 +3,13 @@ spring:
     url: r2dbc:postgresql://localhost:5432/vpp
     username: vpp_user
     password: vpp_password
+    pool:
+      initial-size: 5
+      max-size: 50
+      max-idle-time: 30m
+      max-create-connection-time: 10s
+      max-acquire-time: 30s
+      validation-query: SELECT 1
   sql:
     init:
       mode: always
