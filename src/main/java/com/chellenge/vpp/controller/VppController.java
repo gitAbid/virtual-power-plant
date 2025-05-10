@@ -1,6 +1,7 @@
 package com.chellenge.vpp.controller;
 
 import com.chellenge.vpp.dto.BatteryDto;
+import com.chellenge.vpp.dto.BatteryFilterRequest;
 import com.chellenge.vpp.dto.BatteryResponse;
 import com.chellenge.vpp.service.VppService;
 import jakarta.validation.Valid;
@@ -42,19 +43,19 @@ public class VppController {
     }
     
     /**
-     * Retrieves batteries within the specified postcode range.
+     * Retrieves batteries within the specified postcode range and optionally filters by watt capacity.
      *
-     * @param startPostcode Starting postcode of the range
-     * @param endPostcode Ending postcode of the range
+     * @param request Battery filter request
      * @return Battery response containing matching batteries and statistics
      */
     @GetMapping("/batteries")
     public Mono<ResponseEntity<BatteryResponse>> getBatteriesByPostcodeRange(
-            @RequestParam String startPostcode,
-            @RequestParam String endPostcode) {
-        logger.debug("Querying batteries between postcodes {} and {}", startPostcode, endPostcode);
-        return vppService.getBatteriesByPostcodeRange(startPostcode, endPostcode)
+            @Valid @ModelAttribute BatteryFilterRequest request) {
+        logger.debug("Querying batteries between postcodes {} and {} with watt capacity range [{} - {}]",
+                request.startPostcode(), request.endPostcode(), request.minWattCapacity(), request.maxWattCapacity());
+        return vppService.getBatteriesByPostcodeRange(
+                request.startPostcode(), request.endPostcode(), request.minWattCapacity(), request.maxWattCapacity())
             .map(ResponseEntity::ok)
-            .doOnError(e -> logger.error("Error querying batteries by postcode range", e));
+            .doOnError(e -> logger.error("Error querying batteries by postcode and watt capacity range", e));
     }
 }

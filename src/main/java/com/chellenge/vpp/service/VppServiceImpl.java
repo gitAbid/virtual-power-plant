@@ -4,6 +4,7 @@ import com.chellenge.vpp.dto.BatteryDto;
 import com.chellenge.vpp.dto.BatteryResponse;
 import com.chellenge.vpp.entity.Battery;
 import com.chellenge.vpp.repository.BatteryRepository;
+import com.chellenge.vpp.validator.BatteryValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
@@ -15,9 +16,11 @@ import java.util.List;
 public class VppServiceImpl implements VppService {
     
     private final BatteryRepository batteryRepository;
+    private final BatteryValidator batteryValidator;
     
-    public VppServiceImpl(BatteryRepository batteryRepository) {
+    public VppServiceImpl(BatteryRepository batteryRepository, BatteryValidator batteryValidator) {
         this.batteryRepository = batteryRepository;
+        this.batteryValidator = batteryValidator;
     }
     
     @Override
@@ -30,9 +33,15 @@ public class VppServiceImpl implements VppService {
     }
     
     @Override
-    public Mono<BatteryResponse> getBatteriesByPostcodeRange(String startPostcode, String endPostcode) {
-        return batteryRepository.findBatteriesByPostcodeRange(startPostcode, endPostcode)
-            .collectList()
+    public Mono<BatteryResponse> getBatteriesByPostcodeRange(
+            String startPostcode,
+            String endPostcode,
+            Double minWattCapacity,
+            Double maxWattCapacity) {
+        return batteryValidator.validateWattCapacityParameters(minWattCapacity, maxWattCapacity)
+            .then(Mono.defer(() -> batteryRepository.findBatteriesByPostcodeRangeAndWattCapacity(
+                startPostcode, endPostcode, minWattCapacity, maxWattCapacity)
+                .collectList()))
             .map(batteries -> {
                 List<String> names = batteries.stream()
                     .map(Battery::name)

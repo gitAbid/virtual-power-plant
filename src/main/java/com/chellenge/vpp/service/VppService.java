@@ -2,7 +2,6 @@ package com.chellenge.vpp.service;
 
 import com.chellenge.vpp.dto.BatteryDto;
 import com.chellenge.vpp.dto.BatteryResponse;
-import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -21,11 +20,17 @@ public interface VppService {
     Mono<Void> saveBatteries(List<BatteryDto> batteries);
 
     /**
-     * Retrieves batteries within a postcode range with statistics.
+     * Retrieves batteries within a postcode range with optional watt capacity filtering.
      *
      * @param startPostcode Starting postcode of the range
      * @param endPostcode Ending postcode of the range
+     * @param minWattCapacity Minimum watt capacity (optional)
+     * @param maxWattCapacity Maximum watt capacity (optional)
      * @return Mono of BatteryResponse containing matching batteries and their statistics
      */
-    Mono<BatteryResponse> getBatteriesByPostcodeRange(String startPostcode, String endPostcode);
+    Mono<BatteryResponse> getBatteriesByPostcodeRange(
+            String startPostcode,
+            String endPostcode,
+            Double minWattCapacity,
+            Double maxWattCapacity);
 }

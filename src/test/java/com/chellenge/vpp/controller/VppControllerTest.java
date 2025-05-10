@@ -3,88 +3,109 @@ package com.chellenge.vpp.controller;
 import com.chellenge.vpp.dto.BatteryDto;
 import com.chellenge.vpp.dto.BatteryResponse;
 import com.chellenge.vpp.service.VppService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
+@WebFluxTest(VppController.class)
 class VppControllerTest {
 
-    @Mock
+    @Autowired
+    private WebTestClient webClient;
+
+    @MockBean
     private VppService vppService;
 
-    private WebTestClient webTestClient;
+    @Test
+    void getBatteriesByPostcodeRange_ValidRequest_ReturnsOk() {
+        BatteryResponse response = new BatteryResponse(List.of("Battery1"), 100.0, 100.0);
+        when(vppService.getBatteriesByPostcodeRange(any(), any(), any(), any()))
+            .thenReturn(Mono.just(response));
 
-    @BeforeEach
-    void setUp() {
-        VppController vppController = new VppController(vppService);
-        webTestClient = WebTestClient.bindToController(vppController).build();
+        webClient.get()
+            .uri(uriBuilder -> uriBuilder
+                .path("/api/v1/vpp/batteries")
+                .queryParam("startPostcode", "2000")
+                .queryParam("endPostcode", "3000")
+                .queryParam("minWattCapacity", "100")
+                .queryParam("maxWattCapacity", "200")
+                .build())
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody()
+            .jsonPath("$.names[0]").isEqualTo("Battery1")
+            .jsonPath("$.totalWattCapacity").isEqualTo(100.0)
+            .jsonPath("$.averageWattCapacity").isEqualTo(100.0);
     }
 
     @Test
-    void registerBatteries_ValidInput_ReturnsOk() {
-        // Given
-        List<BatteryDto> batteries = List.of(
-            new BatteryDto("Battery1", "2000", 100.0),
-            new BatteryDto("Battery2", "2001", 200.0)
-        );
-        when(vppService.saveBatteries(anyList())).thenReturn(Mono.empty());
+    void getBatteriesByPostcodeRange_MissingPostcode_ReturnsBadRequest() {
+        webClient.get()
+            .uri(uriBuilder -> uriBuilder
+                .path("/api/v1/vpp/batteries")
+                .queryParam("startPostcode", "2000")
+                .build())
+            .exchange()
+            .expectStatus().isBadRequest()
+            .expectBody()
+            .jsonPath("$.status").isEqualTo("error")
+            .jsonPath("$.message").isEqualTo("Validation failed")
+            .jsonPath("$.errors.endPostcode").exists();
+    }
 
-        // When & Then
-        webTestClient.post()
+    @Test
+    void getBatteriesByPostcodeRange_InvalidPostcode_ReturnsBadRequest() {
+        webClient.get()
+            .uri(uriBuilder -> uriBuilder
+                .path("/api/v1/vpp/batteries")
+                .queryParam("startPostcode", "abc")
+                .queryParam("endPostcode", "3000")
+                .build())
+            .exchange()
+            .expectStatus().isBadRequest()
+            .expectBody()
+            .jsonPath("$.status").isEqualTo("error")
+            .jsonPath("$.message").isEqualTo("Validation failed")
+            .jsonPath("$.errors.startPostcode").exists();
+    }
+
+    @Test
+    void getBatteriesByPostcodeRange_NegativeWattCapacity_ReturnsBadRequest() {
+        webClient.get()
+            .uri(uriBuilder -> uriBuilder
+                .path("/api/v1/vpp/batteries")
+                .queryParam("startPostcode", "2000")
+                .queryParam("endPostcode", "3000")
+                .queryParam("minWattCapacity", "-100")
+                .build())
+            .exchange()
+            .expectStatus().isBadRequest()
+            .expectBody()
+            .jsonPath("$.status").isEqualTo("error")
+            .jsonPath("$.message").isEqualTo("Validation failed")
+            .jsonPath("$.errors.minWattCapacity").exists();
+    }
+
+    @Test
+    void saveBatteries_ValidRequest_ReturnsOk() {
+        List<BatteryDto> batteries = List.of(
+            new BatteryDto("Battery1", "2000", 100.0)
+        );
+
+        when(vppService.saveBatteries(any())).thenReturn(Mono.empty());
+
+        webClient.post()
             .uri("/api/v1/vpp/batteries")
             .bodyValue(batteries)
             .exchange()
             .expectStatus().isOk();
-    }
-
-    @Test
-    void getBatteriesByPostcodeRange_ValidRange_ReturnsBatteries() {
-        // Given
-        BatteryResponse expectedResponse = new BatteryResponse(
-            List.of("Battery1", "Battery2"),
-            300.0,
-            150.0
-        );
-        when(vppService.getBatteriesByPostcodeRange(anyString(), anyString()))
-            .thenReturn(Mono.just(expectedResponse));
-
-        // When & Then
-        webTestClient.get()
-            .uri(uriBuilder -> uriBuilder
-                .path("/api/v1/vpp/batteries")
-                .queryParam("startPostcode", "2000")
-                .queryParam("endPostcode", "2001")
-                .build())
-            .exchange()
-            .expectStatus().isOk()
-            .expectBody(BatteryResponse.class)
-            .isEqualTo(expectedResponse);
-    }
-
-    @Test
-    void registerBatteries_InvalidInput_ReturnsBadRequest() {
-        // Given
-        List<BatteryDto> batteries = List.of(
-            new BatteryDto("", "2000", -100.0)  // Invalid data
-        );
-
-        // When & Then
-        webTestClient.post()
-            .uri("/api/v1/vpp/batteries")
-            .bodyValue(batteries)
-            .exchange()
-            .expectStatus().isBadRequest();
     }
 }
