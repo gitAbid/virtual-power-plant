@@ -7,8 +7,9 @@ import com.chellenge.vpp.service.VppService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
@@ -19,12 +20,13 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @WebFluxTest(VppController.class)
+@Import(TestConfig.class)
 class VppControllerTest {
 
     @Autowired
     private WebTestClient webTestClient;
 
-    @MockBean
+    @Autowired
     private VppService vppService;
 
     @Test
@@ -92,5 +94,22 @@ class VppControllerTest {
                 .build())
             .exchange()
             .expectStatus().isBadRequest();
+    }
+
+    @Test
+    void getBatteriesByPostcodeRange_MaxWattLessThanMin_ReturnsBadRequest() {
+        webTestClient.get()
+            .uri(uriBuilder -> uriBuilder
+                .path("/api/v1/vpp/batteries")
+                .queryParam("startPostcode", "2000")
+                .queryParam("endPostcode", "2001")
+                .queryParam("minWattCapacity", "20.0")
+                .queryParam("maxWattCapacity", "10.0")  // max < min
+                .build())
+            .exchange()
+            .expectStatus().isBadRequest()
+            .expectBody()
+            .jsonPath("$.status").isEqualTo("error")
+            .jsonPath("$.message").isEqualTo("Maximum watt capacity must be greater than or equal to minimum watt capacity");
     }
 }
