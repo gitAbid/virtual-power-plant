@@ -13,5 +13,5 @@ public record BatteryDto(
     
     @NotNull(message = "Watt capacity is required")
     @Positive(message = "Watt capacity must be positive")
-    Double wattCapacity
+    Double capacity
 ) {}

@@ -24,7 +24,7 @@ public class VppServiceImpl implements VppService {
     public Mono<Void> saveBatteries(List<BatteryDto> batteries) {
         return Mono.just(batteries)
             .map(batteryDtos -> batteryDtos.stream()
-                .map(dto -> Battery.from(dto.name(), dto.postcode(), dto.wattCapacity()))
+                .map(dto -> Battery.from(dto.name(), dto.postcode(), dto.capacity()))
                 .toList())
             .flatMap(batteryEntities -> batteryRepository.saveAll(batteryEntities).then());
     }
