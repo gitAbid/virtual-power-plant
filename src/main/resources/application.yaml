@@ -1,4 +1,9 @@
+server:
+  port: 8080
+
 spring:
+  application:
+    name: virtual-power-plant
   r2dbc:
     url: r2dbc:postgresql://localhost:5432/vpp
     username: vpp_user
@@ -14,3 +19,4 @@ spring:
     init:
       mode: always
       schema-locations: classpath:schema.sql
+      data-locations: classpath:data.sql
