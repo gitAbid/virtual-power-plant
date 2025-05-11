@@ -41,7 +41,7 @@ class VppControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(batteries)
             .exchange()
-            .expectStatus().isOk();
+            .expectStatus().isCreated();
     }
 
     @Test

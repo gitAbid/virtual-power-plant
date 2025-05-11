@@ -7,6 +7,7 @@ import com.challenge.vpp.service.VppService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -35,10 +36,10 @@ public class VppController {
      * @return Empty response when operation completes
      */
     @PostMapping("/batteries")
-    public Mono<ResponseEntity<Void>> registerBatteries(@RequestBody @Valid List<BatteryDto> batteries) {
+    public Mono<ResponseEntity<Object>> registerBatteries(@RequestBody @Valid List<BatteryDto> batteries) {
         logger.debug("Registering {} batteries", batteries.size());
         return vppService.saveBatteries(batteries)
-            .map(ResponseEntity::ok)
+            .then(Mono.just(ResponseEntity.status(HttpStatus.CREATED).build()))
             .doOnError(e -> logger.error("Error registering batteries", e));
     }
     

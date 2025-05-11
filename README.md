@@ -83,7 +83,7 @@ The application uses a comprehensive logging setup with:
     }
 ]
 ```
-- **Response**: 200 OK
+- **Response**: 201 Created
 - **Validation**:
   - name: Required, non-blank
   - postcode: Required, numeric string
