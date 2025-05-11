@@ -8,7 +8,7 @@
         </encoder>
     </appender>
 
-    <logger name="com.chellenge.vpp" level="DEBUG"/>
+    <logger name="com.challenge.vpp" level="DEBUG"/>
     <logger name="org.springframework" level="INFO"/>
     <logger name="org.testcontainers" level="INFO"/>
     <logger name="com.github.dockerjava" level="WARN"/>
